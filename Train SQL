@@ -1,0 +1,248 @@
+CREATE DATABASE  IF NOT EXISTS `trainSchedule` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `trainSchedule`;
+-- MySQL dump 10.13  Distrib 8.0.22, for macos10.15 (x86_64)
+--
+-- Host: trainschedule36.cs9to86ym4fs.us-east-2.rds.amazonaws.com    Database: trainSchedule
+-- ------------------------------------------------------
+-- Server version	8.0.20
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
+SET @@SESSION.SQL_LOG_BIN= 0;
+
+--
+-- GTID state at the beginning of the backup 
+--
+
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '';
+
+--
+-- Table structure for table `Customer`
+--
+
+DROP TABLE IF EXISTS `Customer`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Customer` (
+  `c_username` varbinary(45) NOT NULL,
+  `c_password` varbinary(45) DEFAULT NULL,
+  `c_last_name` varchar(30) DEFAULT NULL,
+  `c_first_name` varchar(30) DEFAULT NULL,
+  `c_email` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`c_username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Employee`
+--
+
+DROP TABLE IF EXISTS `Employee`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Employee` (
+  `ssn` int NOT NULL,
+  `e_last_name` varchar(30) DEFAULT NULL,
+  `e_first_name` varchar(30) DEFAULT NULL,
+  `e_username` varbinary(45) DEFAULT NULL,
+  `e_password` varbinary(45) DEFAULT NULL,
+  `e_type` int DEFAULT NULL,
+  PRIMARY KEY (`ssn`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `HasStop`
+--
+
+DROP TABLE IF EXISTS `HasStop`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `HasStop` (
+  `stop_arrival_datetime` datetime NOT NULL,
+  `stop_departure_datetime` datetime NOT NULL,
+  `stop_track_number` int NOT NULL,
+  `stop_station_id` int NOT NULL,
+  `transit_line` varchar(30) NOT NULL,
+  `train_id` int DEFAULT NULL,
+  `origin_departure_datetime` datetime NOT NULL,
+  `destination_arrival_datetime` datetime NOT NULL,
+  `origin_track_number` int DEFAULT NULL,
+  `destination_track_number` int DEFAULT NULL,
+  `origin_station_id` int NOT NULL,
+  `destination_station_id` int NOT NULL,
+  PRIMARY KEY (`origin_departure_datetime`,`destination_arrival_datetime`,`origin_station_id`,`destination_station_id`,`transit_line`,`stop_arrival_datetime`,`stop_departure_datetime`,`stop_track_number`,`stop_station_id`),
+  KEY `stop_info_idx` (`stop_arrival_datetime`,`stop_departure_datetime`,`stop_station_id`,`stop_track_number`),
+  CONSTRAINT `schedule_info` FOREIGN KEY (`origin_departure_datetime`, `destination_arrival_datetime`, `origin_station_id`, `destination_station_id`, `transit_line`) REFERENCES `TrainSchedule` (`origin_departure_datetime`, `destination_arrival_datetime`, `origin_station_id`, `destination_station_id`, `transit_line`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `stop_info` FOREIGN KEY (`stop_arrival_datetime`, `stop_departure_datetime`, `stop_station_id`, `stop_track_number`) REFERENCES `Stop` (`arrival_datetime`, `departure_datetime`, `station_id`, `track_number`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Message`
+--
+
+DROP TABLE IF EXISTS `Message`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Message` (
+  `message_datetime` datetime NOT NULL,
+  `message_content` varchar(1000) DEFAULT NULL,
+  `c_username` varbinary(45) NOT NULL,
+  `message_subject` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`message_datetime`,`c_username`),
+  KEY `c_username_idx` (`c_username`),
+  CONSTRAINT `c_username` FOREIGN KEY (`c_username`) REFERENCES `Customer` (`c_username`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Reservation`
+--
+
+DROP TABLE IF EXISTS `Reservation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Reservation` (
+  `reserve_num` int NOT NULL,
+  `reserve_datetime` datetime DEFAULT NULL,
+  `total_fare` float DEFAULT NULL,
+  `trip_type` int DEFAULT NULL,
+  `c_username` varbinary(45) DEFAULT NULL,
+  `transit_line` varchar(30) DEFAULT NULL,
+  `origin_departure_datetime` datetime DEFAULT NULL,
+  `destination_arrival_datetime` datetime DEFAULT NULL,
+  `origin_station_id` int DEFAULT NULL,
+  `destination_station_id` int DEFAULT NULL,
+  `is_cancelled` int DEFAULT NULL,
+  PRIMARY KEY (`reserve_num`),
+  KEY `reserve_info_idx` (`origin_departure_datetime`,`destination_arrival_datetime`,`origin_station_id`,`destination_station_id`,`transit_line`),
+  KEY `passenger_info_idx` (`c_username`),
+  CONSTRAINT `passenger_info` FOREIGN KEY (`c_username`) REFERENCES `Customer` (`c_username`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `reserve_info` FOREIGN KEY (`origin_departure_datetime`, `destination_arrival_datetime`, `origin_station_id`, `destination_station_id`, `transit_line`) REFERENCES `TrainSchedule` (`origin_departure_datetime`, `destination_arrival_datetime`, `origin_station_id`, `destination_station_id`, `transit_line`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Response`
+--
+
+DROP TABLE IF EXISTS `Response`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Response` (
+  `r_username` varbinary(45) NOT NULL,
+  `response_datetime` datetime NOT NULL,
+  `response_content` varchar(1000) DEFAULT NULL,
+  `originalPoster` varbinary(45) DEFAULT NULL,
+  `originalDatetime` datetime DEFAULT NULL,
+  PRIMARY KEY (`r_username`,`response_datetime`),
+  KEY `c_username_idx` (`originalPoster`),
+  KEY `originalDatetime_idx` (`originalDatetime`),
+  CONSTRAINT `originalDatetime` FOREIGN KEY (`originalDatetime`) REFERENCES `Message` (`message_datetime`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `originalPoster` FOREIGN KEY (`originalPoster`) REFERENCES `Message` (`c_username`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Station`
+--
+
+DROP TABLE IF EXISTS `Station`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Station` (
+  `station_id` int NOT NULL,
+  `name` varchar(30) DEFAULT NULL,
+  `city` varchar(30) DEFAULT NULL,
+  `state` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`station_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Stop`
+--
+
+DROP TABLE IF EXISTS `Stop`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Stop` (
+  `arrival_datetime` datetime NOT NULL,
+  `departure_datetime` datetime NOT NULL,
+  `track_number` int NOT NULL,
+  `station_id` int NOT NULL,
+  PRIMARY KEY (`arrival_datetime`,`departure_datetime`,`station_id`,`track_number`),
+  KEY `station_id_idx` (`station_id`),
+  CONSTRAINT `station_id` FOREIGN KEY (`station_id`) REFERENCES `Station` (`station_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Train`
+--
+
+DROP TABLE IF EXISTS `Train`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Train` (
+  `train_id` int NOT NULL,
+  PRIMARY KEY (`train_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `TrainSchedule`
+--
+
+DROP TABLE IF EXISTS `TrainSchedule`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `TrainSchedule` (
+  `transit_line` varchar(30) NOT NULL,
+  `train_id` int NOT NULL,
+  `origin_arrival_datetime` datetime NOT NULL,
+  `origin_departure_datetime` datetime NOT NULL,
+  `destination_arrival_datetime` datetime NOT NULL,
+  `destination_departure_datetime` datetime NOT NULL,
+  `origin_track_number` int NOT NULL,
+  `destination_track_number` int NOT NULL,
+  `origin_station_id` int NOT NULL,
+  `destination_station_id` int NOT NULL,
+  `base_fare` float DEFAULT NULL,
+  `travel_time` int DEFAULT NULL,
+  `cancellationStatus` int DEFAULT NULL,
+  PRIMARY KEY (`origin_departure_datetime`,`destination_arrival_datetime`,`origin_station_id`,`destination_station_id`,`transit_line`),
+  KEY `train_id_idx` (`train_id`),
+  KEY `origin_info_idx` (`origin_arrival_datetime`,`origin_departure_datetime`,`origin_station_id`,`origin_track_number`),
+  KEY `destination_info_idx` (`destination_arrival_datetime`,`destination_departure_datetime`,`destination_station_id`,`destination_track_number`),
+  CONSTRAINT `destination_info` FOREIGN KEY (`destination_arrival_datetime`, `destination_departure_datetime`, `destination_station_id`, `destination_track_number`) REFERENCES `Stop` (`arrival_datetime`, `departure_datetime`, `station_id`, `track_number`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `origin_info` FOREIGN KEY (`origin_arrival_datetime`, `origin_departure_datetime`, `origin_station_id`, `origin_track_number`) REFERENCES `Stop` (`arrival_datetime`, `departure_datetime`, `station_id`, `track_number`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `train_id` FOREIGN KEY (`train_id`) REFERENCES `Train` (`train_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping routines for database 'trainSchedule'
+--
+SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2020-12-16 18:55:42
